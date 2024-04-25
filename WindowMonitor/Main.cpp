@@ -1,7 +1,5 @@
-#include <windows.h>
-#include <vector>
-#include <string>
-#include <algorithm>
+#include "SoftwareDefinitions.h"
+#include "resource.h"
 
 // Прототип функции обратного вызова окна
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -40,11 +38,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Регистрация класса окна
     const wchar_t CLASS_NAME[] = L"WindowListClass";
 
-    WNDCLASS wc = {};
+    wc = {};
 
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1)); // Загрузка иконки
 
     RegisterClass(&wc);
 
@@ -81,10 +80,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return 0;
 }
 
+
 // Функция обработки сообщений окна
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_CREATE:
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)wc.hIcon);
         RefreshWindowList();
         break;
     case WM_DESTROY:
