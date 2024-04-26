@@ -86,6 +86,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 // ‘ункци€ обработки сообщений окна
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     int y;
+    int cellHeight;
     switch (uMsg) {
     case WM_CREATE:
         SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)wc.hIcon);
@@ -95,18 +96,46 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         PostQuitMessage(0);
         break;
     case WM_PAINT: {
-        ps;
+        PAINTSTRUCT ps;
         hdc = BeginPaint(hwnd, &ps);
 
+        // ”становка шрифта с меньшим размером
+        hFont = CreateFont(14, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+            OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
+            L"Segoe UI");
+        hOldFont = static_cast<HFONT>(SelectObject(hdc, hFont));
+
+        // ”становка цвета фона и рамки
+        SetBkColor(hdc, RGB(255, 255, 255));
+        SetTextColor(hdc, RGB(0, 0, 0));
+
+        // ќпределение размера каждой €чейки
+        RECT cellRect;
+        GetClientRect(hwnd, &cellRect);
+        cellHeight = 20;
+
         // ќтображение списка окон
-        y = 5;
         for (const auto& window : g_windows) {
-            TextOut(hdc, 5, y, window.title.c_str(), static_cast<int>(window.title.length()));
-            y += 20;
+            // ќпределение позиции и размеров текущей €чейки
+            RECT textRect = cellRect;
+            textRect.top += cellHeight;
+            textRect.bottom = textRect.top + cellHeight;
+
+            // ќтображение рамки вокруг текста окна
+            DrawText(hdc, window.title.c_str(), -1, &textRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT);
+            DrawText(hdc, window.title.c_str(), -1, &textRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
+
+            // ѕереход к следующей €чейке
+            cellRect.top = textRect.bottom;
         }
+
+        // ¬осстановление предыдущего шрифта
+        SelectObject(hdc, hOldFont);
+        DeleteObject(hFont);
 
         EndPaint(hwnd, &ps);
         break;
+
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case IDI_ICON2:

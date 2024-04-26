@@ -6,10 +6,8 @@
 
 WNDCLASS wc;
 
-PAINTSTRUCT ps;
 
 HDC hdc;
-
 
 
 // Прототип функции обратного вызова окна
@@ -30,5 +28,8 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 // Прототип функции для обновления списка окон
 void RefreshWindowList();
+
+HFONT hFont;
+HFONT hOldFont;
 
 
