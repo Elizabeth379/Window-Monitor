@@ -87,6 +87,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     int y;
     int cellHeight;
+    int maxWidth;
+    int cellWidth;
+    int maxHeight;
+
+
     switch (uMsg) {
     case WM_CREATE:
         SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)wc.hIcon);
@@ -109,24 +114,29 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         SetBkColor(hdc, RGB(255, 255, 255));
         SetTextColor(hdc, RGB(0, 0, 0));
 
-        // Определение размера каждой ячейки
-        RECT cellRect;
-        GetClientRect(hwnd, &cellRect);
+        // Определение размеров клиентской области окна
+        RECT clientRect;
+        GetClientRect(hwnd, &clientRect);
+
+        // Определение размеров и позиций для отображения списка окон в правой половине окна, начиная с верха
         cellHeight = 20;
+        y = 0;
+        maxWidth = clientRect.right - clientRect.left; // Ширина клиентской области окна
+        cellWidth = maxWidth; // Ширина каждой ячейки равна ширине клиентской области
+        maxHeight = clientRect.bottom - clientRect.top; // Высота клиентской области окна
 
         // Отображение списка окон
         for (const auto& window : g_windows) {
-            // Определение позиции и размеров текущей ячейки
-            RECT textRect = cellRect;
-            textRect.top += cellHeight;
-            textRect.bottom = textRect.top + cellHeight;
+            RECT textRect;
+            textRect.left = maxWidth / 2; // Начало текста посередине окна по горизонтали
+            textRect.top = y; // Позиция текста по вертикали
+            textRect.right = maxWidth; // Правая граница текста равна правой границе окна
+            textRect.bottom = textRect.top + cellHeight; // Нижняя граница текста
 
             // Отображение рамки вокруг текста окна
-            DrawText(hdc, window.title.c_str(), -1, &textRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT);
             DrawText(hdc, window.title.c_str(), -1, &textRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL);
 
-            // Переход к следующей ячейке
-            cellRect.top = textRect.bottom;
+            y += cellHeight; // Переходим к следующей позиции для следующей ячейки
         }
 
         // Восстановление предыдущего шрифта
