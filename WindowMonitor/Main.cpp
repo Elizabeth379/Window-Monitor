@@ -1,18 +1,6 @@
 #include "SoftwareDefinitions.h"
 #include "resource.h"
 
-// Прототип функции обратного вызова окна
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-// Структура для хранения информации об окне
-struct WindowInfo {
-    HWND hwnd;
-    std::wstring title;
-};
-
-// Глобальный список окон
-std::vector<WindowInfo> g_windows;
-
 // Функция для обновления списка окон
 void RefreshWindowList() {
     g_windows.clear();
@@ -63,6 +51,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         NULL        // Additional application data
     );
 
+    HWND button = CreateWindow(
+        L"BUTTON",                      // Predefined class; Unicode assumed
+        L"Refresh List",                // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
+        10,                             // x position
+        10,                             // y position
+        120,                            // Button width
+        30,                             // Button height
+        hwnd,                           // Parent window
+        (HMENU)IDI_ICON2,      // No menu.
+        (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
+        NULL);                          // Pointer not needed.
+
+
     if (hwnd == NULL) {
         return 0;
     }
@@ -83,6 +85,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 // Функция обработки сообщений окна
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    int y;
     switch (uMsg) {
     case WM_CREATE:
         SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)wc.hIcon);
@@ -92,17 +95,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         PostQuitMessage(0);
         break;
     case WM_PAINT: {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hwnd, &ps);
+        ps;
+        hdc = BeginPaint(hwnd, &ps);
 
         // Отображение списка окон
-        int y = 5;
+        y = 5;
         for (const auto& window : g_windows) {
             TextOut(hdc, 5, y, window.title.c_str(), static_cast<int>(window.title.length()));
             y += 20;
         }
 
         EndPaint(hwnd, &ps);
+        break;
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case IDI_ICON2:
+            RefreshWindowList();
+            InvalidateRect(hwnd, NULL, TRUE); // Перерисовка окна после обновления списка
+            break;
+        }
         break;
     }
     default:
