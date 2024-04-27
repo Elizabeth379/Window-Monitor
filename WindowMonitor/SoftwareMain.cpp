@@ -55,7 +55,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 	MSG SoftwareMainMessage = { 0 };
 
 	// параметр WS_OVERLAPPEDWINDOW добавляет кнопки размер, свернуть, закрыть на окно + перемещение окна + стандартные бордюр и рамка + системное меню
-	CreateWindow(L"MainWndClass", L"Window List", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 800, 800, NULL, NULL, NULL, NULL);
+	CreateWindow(L"MainWndClass", L"Window Monitor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 800, 800, NULL, NULL, NULL, NULL);
 	while (GetMessage(&SoftwareMainMessage, NULL, NULL, NULL))
 	{
 		TranslateMessage(&SoftwareMainMessage);
