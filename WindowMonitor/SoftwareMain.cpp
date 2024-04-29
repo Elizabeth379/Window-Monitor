@@ -14,17 +14,27 @@ void RefreshWindowList() {
 	HWND hwnd = GetTopWindow(nullptr);
 	while (hwnd != nullptr) {
 		if (IsWindowVisible(hwnd)) {
-			wchar_t title[256];
-			GetWindowText(hwnd, title, sizeof(title) / sizeof(wchar_t));
-			g_windows.push_back({ hwnd, title });
+			// ѕровер€ем, не €вл€етс€ ли окно системным или окном инструментов
+			LONG exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+			if (!(exStyle & WS_EX_TOOLWINDOW)) {
+				wchar_t title[256];
+				GetWindowText(hwnd, title, sizeof(title) / sizeof(wchar_t));
 
-			// ƒобавление заголовка окна в список
-			SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)title);
+				// ѕровер€ем, не €вл€етс€ ли заголовок определенным системным или нежелательным
+				std::wstring windowTitle = title;
+				if (windowTitle != L"ѕараметры" && windowTitle != L"Microsoft Text Input Application") {
+					g_windows.push_back({ hwnd, title });
+
+					// ƒобавление заголовка окна в список
+					SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)title);
+				}
+			}
 		}
 		hwnd = GetNextWindow(hwnd, GW_HWNDNEXT);
 	}
-
 }
+
+
 
 void OpenSelectedWindow() {
 	// ѕолучаем индекс выбранного элемента в списке
