@@ -7,6 +7,8 @@
 #define OnExitSoftware 1
 #define OnRefreshField 2
 #define OnReadColor 3
+#define ID_OPEN_WINDOW 4
+#define ID_CLOSE_WINDOW 5
 
 #define DigIndexColorR 200
 #define DigIndexColorG 201
@@ -68,6 +70,8 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 // Прототип функции для обновления списка окон
 void RefreshWindowList();
+void OpenSelectedWindow();
+void CloseSelectedWindow();
 
 HFONT hFont;
 HFONT hOldFont;

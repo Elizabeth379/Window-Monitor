@@ -24,10 +24,58 @@ void RefreshWindowList() {
 		hwnd = GetNextWindow(hwnd, GW_HWNDNEXT);
 	}
 
-	// Сортировка списка окон по заголовкам
-	std::sort(g_windows.begin(), g_windows.end(), [](const WindowInfo& a, const WindowInfo& b) {
-		return a.title < b.title;
-		});
+}
+
+void OpenSelectedWindow() {
+	// Получаем индекс выбранного элемента в списке
+	int selectedIndex = SendMessage(g_hWndListBox, LB_GETCURSEL, 0, 0);
+
+	if (selectedIndex != LB_ERR) { // Проверяем, что элемент был выбран
+		// Получаем заголовок окна по индексу
+		wchar_t title[256];
+		SendMessage(g_hWndListBox, LB_GETTEXT, selectedIndex, (LPARAM)title);
+
+		// Ищем окно по заголовку
+		for (const auto& window : g_windows) {
+			if (window.title == title) {
+				HWND hWnd = window.hwnd;
+
+				// Проверяем, что окно существует и видимо
+				if (IsWindow(hWnd) && IsWindowVisible(hWnd)) {
+					// Разворачиваем окно
+					ShowWindow(hWnd, SW_RESTORE);
+					SetForegroundWindow(hWnd);
+				}
+				break; // Необходимо выйти из цикла после нахождения соответствующего окна
+			}
+		}
+	}
+}
+
+
+void CloseSelectedWindow() {
+	// Получаем индекс выбранного элемента в списке
+	int selectedIndex = SendMessage(g_hWndListBox, LB_GETCURSEL, 0, 0);
+
+	if (selectedIndex != LB_ERR) { // Проверяем, что элемент был выбран
+		// Получаем заголовок окна по индексу
+		wchar_t title[256];
+		SendMessage(g_hWndListBox, LB_GETTEXT, selectedIndex, (LPARAM)title);
+
+		// Ищем окно по заголовку
+		for (const auto& window : g_windows) {
+			if (window.title == title) {
+				HWND hWnd = window.hwnd;
+
+				// Проверяем, что окно существует и видимо
+				if (IsWindow(hWnd) && IsWindowVisible(hWnd)) {
+					// Закрываем окно
+					SendMessage(hWnd, WM_CLOSE, 0, 0);
+				}
+				break; // Необходимо выйти из цикла после нахождения соответствующего окна
+			}
+		}
+	}
 }
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdshow) {
@@ -110,9 +158,17 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 			RedrawWindow(hWnd, NULL, NULL, RDW_UPDATENOW | RDW_INVALIDATE);
 
 			break;
+		case ID_OPEN_WINDOW:
+			// Открыть окно
+			OpenSelectedWindow();
+			break;
+		case ID_CLOSE_WINDOW:
+			// Закрыть окно
+			CloseSelectedWindow();
+			break;
 		case OnExitSoftware:
 			PostQuitMessage(0);
-			break;
+			break;	
 		default:
 			break;
 
@@ -159,6 +215,26 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		return (INT_PTR)CreateSolidBrush(RGB(0, 200, 0));
 
 		break;
+
+	case WM_CONTEXTMENU:
+		if ((HWND)wp == g_hWndListBox) {
+			// Получаем координаты курсора мыши
+			POINT cursor;
+			GetCursorPos(&cursor);
+
+			// Создаем контекстное меню
+			HMENU hPopupMenu = CreatePopupMenu();
+			AppendMenu(hPopupMenu, MF_STRING, ID_OPEN_WINDOW, L"Open");
+			AppendMenu(hPopupMenu, MF_STRING, ID_CLOSE_WINDOW, L"Close");
+
+			// Отображаем контекстное меню
+			TrackPopupMenu(hPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, cursor.x, cursor.y, 0, hWnd, NULL);
+
+			// Освобождаем ресурсы контекстного меню
+			DestroyMenu(hPopupMenu);
+		}
+		break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
