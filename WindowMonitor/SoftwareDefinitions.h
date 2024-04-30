@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <chrono>
 
 #define OnExitSoftware 1
 #define OnRefreshField 2
@@ -11,6 +12,8 @@
 #define ID_CLOSE_WINDOW 5
 #define OnNameABSortField 6
 #define OnNameBASortField 7
+#define OnEarlierSortField 8
+#define OnLaterSortField 9
 
 #define DigIndexColorR 200
 #define DigIndexColorG 201
@@ -61,6 +64,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 struct WindowInfo {
     HWND hwnd;
     std::wstring title;
+    std::chrono::time_point<std::chrono::system_clock> openTime;
 };
 
 // Глобальный список окон
@@ -74,9 +78,14 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void RefreshWindowList();
 void OpenSelectedWindow();
 void CloseSelectedWindow();
+
 void ABSort();
 void BASort();
 bool CompareWindowTitles(const WindowInfo& a, const WindowInfo& b);
+void EarlierSort();
+void LaterSort();
+bool CompareWindowOpenTime(const WindowInfo& a, const WindowInfo& b);
+bool CompareWindowOpenTimeReverse(const WindowInfo& a, const WindowInfo& b);
 
 HFONT hFont;
 HFONT hOldFont;

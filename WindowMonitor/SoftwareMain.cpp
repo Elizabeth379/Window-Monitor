@@ -4,6 +4,30 @@
 #include "SoftwareDefinitions.h"
 #include "resource.h"
 
+
+std::chrono::time_point<std::chrono::system_clock> GetWindowOpenTime(HWND hwnd) {
+	FILETIME creationTime, exitTime, kernelTime, userTime;
+
+	// Получаем идентификатор потока, связанного с окном
+	DWORD dwProcessId;
+	DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
+
+	// Получаем временные данные процесса, связанного с окном
+	if (GetProcessTimes(OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId), &creationTime, &exitTime, &kernelTime, &userTime)) {
+		// Преобразуем время создания процесса в системное время
+		ULARGE_INTEGER uli;
+		uli.LowPart = creationTime.dwLowDateTime;
+		uli.HighPart = creationTime.dwHighDateTime;
+		auto systemTime = std::chrono::system_clock::from_time_t(uli.QuadPart / 10000000 - 11644473600);
+
+		return systemTime;
+	}
+	else {
+		// Если не удалось получить временные данные, возвращаем текущее системное время
+		return std::chrono::system_clock::now();
+	}
+}
+
 void RefreshWindowList() {
 	g_windows.clear();
 
@@ -18,12 +42,14 @@ void RefreshWindowList() {
 			LONG exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
 			if (!(exStyle & WS_EX_TOOLWINDOW)) {
 				wchar_t title[256];
+				std::chrono::time_point<std::chrono::system_clock> openTime;
 				GetWindowText(hwnd, title, sizeof(title) / sizeof(wchar_t));
+				openTime = GetWindowOpenTime(hwnd);
 
 				// Проверяем, не является ли заголовок определенным системным или нежелательным
 				std::wstring windowTitle = title;
 				if (windowTitle != L"Параметры" && windowTitle != L"Microsoft Text Input Application") {
-					g_windows.push_back({ hwnd, title });
+					g_windows.push_back({ hwnd, title, openTime });
 
 					// Добавление заголовка окна в список
 					SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)title);
@@ -59,6 +85,37 @@ void BASort() {
 		});
 
 	// Очищаем список окон на экране
+	SendMessage(g_hWndListBox, LB_RESETCONTENT, 0, 0);
+
+	// Выводим отсортированный список окон на экран
+	for (const auto& window : g_windows) {
+		SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)window.title.c_str());
+	}
+}
+
+bool CompareWindowOpenTime(const WindowInfo& a, const WindowInfo& b) {
+	return a.openTime.time_since_epoch() < b.openTime.time_since_epoch();
+}
+
+
+void EarlierSort() {
+	std::sort(g_windows.begin(), g_windows.end(), CompareWindowOpenTime);
+
+	SendMessage(g_hWndListBox, LB_RESETCONTENT, 0, 0);
+
+	// Выводим отсортированный список окон на экран
+	for (const auto& window : g_windows) {
+		SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)window.title.c_str());
+	}
+}
+
+bool CompareWindowOpenTimeReverse(const WindowInfo& a, const WindowInfo& b) {
+	return a.openTime.time_since_epoch() > b.openTime.time_since_epoch();
+}
+
+void LaterSort() {
+	std::sort(g_windows.begin(), g_windows.end(), CompareWindowOpenTimeReverse);
+
 	SendMessage(g_hWndListBox, LB_RESETCONTENT, 0, 0);
 
 	// Выводим отсортированный список окон на экран
@@ -216,6 +273,12 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		case OnNameBASortField:
 			BASort();
 			break;
+		case OnEarlierSortField:
+			EarlierSort();
+			break;
+		case OnLaterSortField:
+			LaterSort();
+			break;
 		default:
 			break;
 
@@ -295,17 +358,21 @@ void MainWndAddMenus(HWND hWnd) {
 
 	HMENU SubMenu = CreateMenu();
 	HMENU SubActionMenu = CreateMenu();
+	HMENU SubTimeActionMenu = CreateMenu();
 
 
 	AppendMenu(SubMenu, MF_STRING, OnRefreshField, L"Refresh");
 	AppendMenu(SubMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(SubMenu, MF_POPUP, (UINT_PTR)SubActionMenu, L"Name Sort");
+	AppendMenu(SubMenu, MF_POPUP, (UINT_PTR)SubTimeActionMenu, L"Open time Sort");
 	AppendMenu(SubMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(SubMenu, MF_STRING, OnExitSoftware, L"Exit");
 
 	AppendMenu(SubActionMenu, MF_STRING, OnNameABSortField, L"A-Z");
 	AppendMenu(SubActionMenu, MF_STRING, OnNameBASortField, L"Z-A");
 
+	AppendMenu(SubTimeActionMenu, MF_STRING, OnEarlierSortField, L"Earlier");
+	AppendMenu(SubTimeActionMenu, MF_STRING, OnLaterSortField, L"Later");
 
 	AppendMenu(RootMenu, MF_POPUP, (UINT_PTR)SubMenu, L"Menu");
 
