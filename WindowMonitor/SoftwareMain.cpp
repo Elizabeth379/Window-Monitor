@@ -34,7 +34,38 @@ void RefreshWindowList() {
 	}
 }
 
+// Функция сравнения для сортировки окон по заголовкам
+bool CompareWindowTitles(const WindowInfo& a, const WindowInfo& b) {
+	return a.title < b.title;
+}
 
+void ABSort() {
+	// Сортируем список окон по заголовкам в алфавитном порядке
+	std::sort(g_windows.begin(), g_windows.end(), CompareWindowTitles);
+
+	// Очищаем список окон на экране
+	SendMessage(g_hWndListBox, LB_RESETCONTENT, 0, 0);
+
+	// Выводим отсортированный список окон на экран
+	for (const auto& window : g_windows) {
+		SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)window.title.c_str());
+	}
+}
+
+void BASort() {
+	// Сортируем список окон по заголовкам в обратном алфавитном порядке
+	std::sort(g_windows.begin(), g_windows.end(), [](const WindowInfo& a, const WindowInfo& b) {
+		return a.title > b.title;
+		});
+
+	// Очищаем список окон на экране
+	SendMessage(g_hWndListBox, LB_RESETCONTENT, 0, 0);
+
+	// Выводим отсортированный список окон на экран
+	for (const auto& window : g_windows) {
+		SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)window.title.c_str());
+	}
+}
 
 void OpenSelectedWindow() {
 	// Получаем индекс выбранного элемента в списке
@@ -179,6 +210,12 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		case OnExitSoftware:
 			PostQuitMessage(0);
 			break;	
+		case OnNameABSortField:
+			ABSort();
+			break;
+		case OnNameBASortField:
+			BASort();
+			break;
 		default:
 			break;
 
@@ -262,7 +299,13 @@ void MainWndAddMenus(HWND hWnd) {
 
 	AppendMenu(SubMenu, MF_STRING, OnRefreshField, L"Refresh");
 	AppendMenu(SubMenu, MF_SEPARATOR, NULL, NULL);
+	AppendMenu(SubMenu, MF_POPUP, (UINT_PTR)SubActionMenu, L"Name Sort");
+	AppendMenu(SubMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(SubMenu, MF_STRING, OnExitSoftware, L"Exit");
+
+	AppendMenu(SubActionMenu, MF_STRING, OnNameABSortField, L"A-Z");
+	AppendMenu(SubActionMenu, MF_STRING, OnNameBASortField, L"Z-A");
+
 
 	AppendMenu(RootMenu, MF_POPUP, (UINT_PTR)SubMenu, L"Menu");
 

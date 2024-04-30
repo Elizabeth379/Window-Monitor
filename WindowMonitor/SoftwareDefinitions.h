@@ -9,6 +9,8 @@
 #define OnReadColor 3
 #define ID_OPEN_WINDOW 4
 #define ID_CLOSE_WINDOW 5
+#define OnNameABSortField 6
+#define OnNameBASortField 7
 
 #define DigIndexColorR 200
 #define DigIndexColorG 201
@@ -72,6 +74,9 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void RefreshWindowList();
 void OpenSelectedWindow();
 void CloseSelectedWindow();
+void ABSort();
+void BASort();
+bool CompareWindowTitles(const WindowInfo& a, const WindowInfo& b);
 
 HFONT hFont;
 HFONT hOldFont;
