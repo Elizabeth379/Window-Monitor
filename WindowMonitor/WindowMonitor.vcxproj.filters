@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SoftwareMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,16 +36,13 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Users\Acer\Downloads\icon-wm.ico">
+    <Image Include="..\Resourses\icon-wm.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\..\Users\Acer\Downloads\refresh.ico">
+    <Image Include="..\Resourses\preview.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\..\users\acer\downloads\icon3.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\..\..\Users\Acer\Downloads\preview.ico">
+    <Image Include="..\Resourses\search.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

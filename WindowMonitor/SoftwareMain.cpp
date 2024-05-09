@@ -14,12 +14,10 @@ void PreviewSelectedWindow() {
 		wchar_t title[256];
 		SendMessage(g_hWndListBox, LB_GETTEXT, selectedIndex, (LPARAM)title);
 
-		// Ищем окно по заголовку
 		for (const auto& window : g_windows) {
 			if (window.title == title) {
 				HWND hWnd = window.hwnd;
 
-				// Проверяем, что окно существует и видимо
 				if (IsWindow(hWnd) && IsWindowVisible(hWnd)) {
 					RECT rect;
 					GetClientRect(hWnd, &rect);
@@ -50,7 +48,7 @@ void PreviewSelectedWindow() {
 					SendMessage(hWndPreview, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
 
 					// Load custom icon
-					HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON4));
+					HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON2));
 
 					SendMessage(hWndPreview, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 					SendMessage(hWndPreview, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
@@ -288,7 +286,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 	MSG SoftwareMainMessage = { 0 };
 
 	// параметр WS_OVERLAPPEDWINDOW добавляет кнопки размер, свернуть, закрыть на окно + перемещение окна + стандартные бордюр и рамка + системное меню
-	CreateWindow(L"MainWndClass", L"Window Monitor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 800, 800, NULL, NULL, NULL, NULL);
+	CreateWindow(L"MainWndClass", L"Window Monitor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 800, 880, NULL, NULL, NULL, NULL);
 	while (GetMessage(&SoftwareMainMessage, NULL, NULL, NULL))
 	{
 		TranslateMessage(&SoftwareMainMessage);
@@ -369,6 +367,23 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		case ID_PREVIEW_WINDOW:
 			PreviewSelectedWindow();
 			break;
+		case ID_SEARCH_BUTTON:
+			if (HIWORD(wp) == BN_CLICKED) {
+				// Получаем текст из строки поиска
+				wchar_t searchText[256];
+				GetWindowText(searchEdit, searchText, 256);
+
+				// Очищаем список окон на экране
+				SendMessage(g_hWndListBox, LB_RESETCONTENT, 0, 0);
+
+				// Выводим окна, содержащие введенный текст в заголовке
+				for (const auto& window : g_windows) {
+					if (window.title.find(searchText) != std::wstring::npos) {
+						SendMessage(g_hWndListBox, LB_ADDSTRING, 0, (LPARAM)window.title.c_str());
+					}
+				}
+			}
+			break;
 		default:
 			break;
 
@@ -411,7 +426,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	case WM_CTLCOLOREDIT:
 
 		hdcStatic = (HDC)wp;
-		SetBkColor(hdcStatic, RGB(0, 200, 0));
+		//SetBkColor(hdcStatic, RGB(0, 200, 0));
 		return (INT_PTR)CreateSolidBrush(RGB(0, 200, 0));
 
 		break;
@@ -485,8 +500,19 @@ void MainWndAddWidgets(HWND hWnd) {
 	CreateWindowA("button", "Set color", WS_VISIBLE | WS_CHILD | ES_CENTER, 95, 5, 170, 30, hWnd, (HMENU)OnReadColor, NULL, NULL);
 
 	g_hWndListBox = CreateWindowW(L"LISTBOX", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS | LBS_NOTIFY,
-		5, 115, 770, 600, hWnd, nullptr, nullptr, nullptr);
+		5, 190, 770, 610, hWnd, nullptr, nullptr, nullptr);
 
+	// Создание строки поиска
+	 searchEdit = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+		5, 135, 600, 25, hWnd, nullptr, nullptr, nullptr);
+
+	 // Создание кнопки с изображением
+	 HWND searchButton = CreateWindowW(L"BUTTON", L"", WS_VISIBLE | WS_CHILD | BS_ICON,
+		 610, 125, 80, 45, hWnd, (HMENU)ID_SEARCH_BUTTON, nullptr, nullptr);
+
+	 // Загрузка и установка иконки на кнопку
+	 HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON3));
+	 SendMessage(searchButton, BM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hIcon);
 
 }
 

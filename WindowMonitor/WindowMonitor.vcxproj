@@ -127,7 +127,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
     <ClCompile Include="SoftwareMain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -139,10 +138,9 @@
     <ResourceCompile Include="WindowMonitor.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Users\Acer\Downloads\icon-wm.ico" />
-    <Image Include="..\..\..\users\acer\downloads\icon3.ico" />
-    <Image Include="..\..\..\Users\Acer\Downloads\preview.ico" />
-    <Image Include="..\..\..\Users\Acer\Downloads\refresh.ico" />
+    <Image Include="..\Resourses\icon-wm.ico" />
+    <Image Include="..\Resourses\preview.ico" />
+    <Image Include="..\Resourses\search.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -17,6 +17,7 @@
 #define OnEarlierSortField 8
 #define OnLaterSortField 9
 #define ID_PREVIEW_WINDOW 10
+#define ID_SEARCH_BUTTON 11
 
 #define DigIndexColorR 200
 #define DigIndexColorG 201
@@ -31,6 +32,7 @@ unsigned num;
 HWND hStaticControl;
 HWND hEditControl;
 HWND hNumberControl;
+HWND searchEdit;
 
 HWND g_hWndListBox;
 
