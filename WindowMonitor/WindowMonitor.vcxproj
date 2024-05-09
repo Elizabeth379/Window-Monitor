@@ -140,6 +140,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\Users\Acer\Downloads\icon-wm.ico" />
+    <Image Include="..\..\..\users\acer\downloads\icon3.ico" />
+    <Image Include="..\..\..\Users\Acer\Downloads\preview.ico" />
     <Image Include="..\..\..\Users\Acer\Downloads\refresh.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

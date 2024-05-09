@@ -3,6 +3,93 @@
 #include "SoftwareColors.h"
 #include "SoftwareDefinitions.h"
 #include "resource.h"
+#include <gdiplus.h>
+#pragma comment (lib,"Gdiplus.lib")
+
+
+void PreviewSelectedWindow() {
+	int selectedIndex = SendMessage(g_hWndListBox, LB_GETCURSEL, 0, 0);
+
+	if (selectedIndex != LB_ERR) {
+		wchar_t title[256];
+		SendMessage(g_hWndListBox, LB_GETTEXT, selectedIndex, (LPARAM)title);
+
+		// Ищем окно по заголовку
+		for (const auto& window : g_windows) {
+			if (window.title == title) {
+				HWND hWnd = window.hwnd;
+
+				// Проверяем, что окно существует и видимо
+				if (IsWindow(hWnd) && IsWindowVisible(hWnd)) {
+					RECT rect;
+					GetClientRect(hWnd, &rect);
+
+					// Create a bitmap to capture the screenshot
+					HDC hdcScreen = GetDC(NULL);
+					HDC hdcWindow = GetDC(hWnd);
+
+					// Capture the screenshot
+					HDC hdcMemDC = CreateCompatibleDC(hdcScreen);
+					HBITMAP hBitmap = CreateCompatibleBitmap(hdcScreen, rect.right - rect.left, rect.bottom - rect.top);
+					HGDIOBJ oldBitmap = SelectObject(hdcMemDC, hBitmap);
+
+					PrintWindow(hWnd, hdcMemDC, PW_CLIENTONLY);
+					SelectObject(hdcMemDC, oldBitmap);
+					DeleteDC(hdcMemDC);
+
+					// Create a new window to display the screenshot
+					HWND hWndPreview = CreateWindowEx(
+						WS_EX_CLIENTEDGE,
+						L"STATIC",
+						L"Preview",
+						WS_VISIBLE | WS_OVERLAPPEDWINDOW | SS_BITMAP,
+						CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
+						NULL, NULL, GetModuleHandle(NULL), NULL);
+
+					// Set the captured bitmap as the background of the new window
+					SendMessage(hWndPreview, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
+
+					// Load custom icon
+					HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON4));
+
+					SendMessage(hWndPreview, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+					SendMessage(hWndPreview, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+					SetWindowLongPtr(hWndPreview, GWLP_WNDPROC, (LONG_PTR)PreviewWindowProc);
+
+					// Cleanup
+					DeleteObject(hBitmap);
+					ReleaseDC(hWnd, hdcWindow);
+					ReleaseDC(NULL, hdcScreen);
+				}
+				break;
+			}
+		}
+	}
+	else {
+		std::cout << "No item selected." << std::endl;
+	}
+}
+
+
+LRESULT CALLBACK PreviewWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+	case WM_CTLCOLORSTATIC: {
+		HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 0)); 
+		HBRUSH hOldBrush = (HBRUSH)SelectObject((HDC)wParam, hBrush);
+		SetTextColor((HDC)wParam, RGB(255, 255, 255)); 
+		SetBkColor((HDC)wParam, RGB(0, 0, 0));
+		return (LRESULT)hBrush;
+	}
+	case WM_DESTROY:
+		DestroyWindow(hWnd);
+		break;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+
 
 
 std::chrono::time_point<std::chrono::system_clock> GetWindowOpenTime(HWND hwnd) {
@@ -279,6 +366,9 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		case OnLaterSortField:
 			LaterSort();
 			break;
+		case ID_PREVIEW_WINDOW:
+			PreviewSelectedWindow();
+			break;
 		default:
 			break;
 
@@ -334,6 +424,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 
 			// Создаем контекстное меню
 			HMENU hPopupMenu = CreatePopupMenu();
+			AppendMenu(hPopupMenu, MF_STRING, ID_PREVIEW_WINDOW, L"Preview");
 			AppendMenu(hPopupMenu, MF_STRING, ID_OPEN_WINDOW, L"Open");
 			AppendMenu(hPopupMenu, MF_STRING, ID_CLOSE_WINDOW, L"Close");
 

@@ -45,5 +45,11 @@
     <Image Include="..\..\..\Users\Acer\Downloads\refresh.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\..\..\users\acer\downloads\icon3.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\..\Users\Acer\Downloads\preview.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

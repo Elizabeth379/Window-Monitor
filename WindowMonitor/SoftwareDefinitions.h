@@ -4,6 +4,8 @@
 #include <string>
 #include <algorithm>
 #include <chrono>
+#include <iostream>
+#include <fstream>
 
 #define OnExitSoftware 1
 #define OnRefreshField 2
@@ -14,6 +16,7 @@
 #define OnNameBASortField 7
 #define OnEarlierSortField 8
 #define OnLaterSortField 9
+#define ID_PREVIEW_WINDOW 10
 
 #define DigIndexColorR 200
 #define DigIndexColorG 201
@@ -59,6 +62,7 @@ HDC hdc;
 
 // Прототип функции обратного вызова окна
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK PreviewWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 // Структура для хранения информации об окне
 struct WindowInfo {
