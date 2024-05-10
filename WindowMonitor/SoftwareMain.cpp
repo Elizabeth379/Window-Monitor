@@ -348,6 +348,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		case ID_CLOSE_WINDOW:
 			// Закрыть окно
 			CloseSelectedWindow();
+			RefreshWindowList();
 			break;
 		case OnExitSoftware:
 			PostQuitMessage(0);
